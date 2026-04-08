@@ -5,16 +5,16 @@ public class Produto {
         private String nome;
         private double preco;
         private int quantidade; // quantidade em estoque
-        private String tipo;
+        private TipoProduto tipo;
 
-        public Produto(String nome, double preco, int quantidade, String tipo) {
+        public Produto(String nome, double preco, int quantidade, TipoProduto tipo) {
             this.nome = nome;
             this.preco = preco;
             this.quantidade = quantidade;
             this.tipo = tipo;
         }
 
-        public Produto(int id, String nome, double preco, int quantidade, String tipo) {
+        public Produto(int id, String nome, double preco, int quantidade, TipoProduto tipo) {
             this.id = id;
             this.nome = nome;
             this.preco = preco;
@@ -38,7 +38,7 @@ public class Produto {
             return quantidade;
         }
 
-        public String getTipo(){
+        public TipoProduto getTipo(){
             return tipo;
         }
 
