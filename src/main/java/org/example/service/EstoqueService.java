@@ -1,8 +1,11 @@
 package org.example.service;
 
+import org.example.database.Conexao;
 import org.example.model.Produto;
 import org.example.model.TipoProduto;
 import org.example.repository.ProdutoRepo;
+import org.flywaydb.core.internal.database.base.Connection;
+
 import java.util.ArrayList;
 
 public class EstoqueService {
