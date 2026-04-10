@@ -108,4 +108,14 @@ public class EstoqueService {
         }
         if (!encontrou) System.out.println("   Nenhum produto crítico.");
     }
+    public void atualizarEstoque(int id, int novaQuantidade) {
+        Produto p = repo.buscarPorId(id);
+        if (p == null) {
+            System.out.println("Produto não encontrado.");
+            return;
+        }
+        p.setQuantidade(novaQuantidade);
+        repo.atualizar(p);
+        System.out.println("Estoque atualizado! " + p.getNome() + " agora tem " + novaQuantidade + " unidades.");
+    }
 }
