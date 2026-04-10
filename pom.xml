@@ -32,6 +32,13 @@
             <artifactId>flyway-database-postgresql</artifactId>
             <version>12.3.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>6.4.4.Final</version>
+        </dependency>
+
     </dependencies>
 
     <repositories>

@@ -1,11 +1,29 @@
 package org.example.model;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "produtos")
+
 public class Produto {
-        private int id;
-        private String nome;
-        private double preco;
-        private int quantidade; // quantidade em estoque
-        private TipoProduto tipo;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    @Column(nullable = false, length = 100)
+    private String nome;
+
+    @Column(nullable = false)
+    private double preco;
+
+    @Column(nullable = false)
+    private int quantidade;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private TipoProduto tipo;
+
+    public Produto() {}
 
         public Produto(String nome, double preco, int quantidade, TipoProduto tipo) {
             this.nome = nome;
