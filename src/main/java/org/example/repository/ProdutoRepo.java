@@ -32,9 +32,7 @@ public class ProdutoRepo {
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
-            while (rs.next()) {
-                lista.add(montarProduto(rs));
-            }
+            while (rs.next()) lista.add(montarProduto(rs));
 
         } catch (SQLException e) {
             System.out.println("Erro ao buscar produtos: " + e.getMessage());
@@ -120,7 +118,6 @@ public class ProdutoRepo {
         return false;
     }
 
-    // monta um objeto Produto a partir de uma linha do banco
     private Produto montarProduto(ResultSet rs) throws SQLException {
         return new Produto(
                 rs.getInt("id"),

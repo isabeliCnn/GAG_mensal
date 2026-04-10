@@ -2,132 +2,87 @@ package org.example.service;
 
 import org.example.model.Ficha;
 import org.example.model.Pedido;
+import org.example.repository.FichaRepository;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
 public class FichaService {
 
-    private ArrayList<Ficha> fichas;
+    private final FichaRepository fichaRepository;
+    private final PedidoService   pedidoService;
 
-    public FichaService() {
-        this.fichas = new ArrayList<>();
+    public FichaService(FichaRepository fichaRepository, PedidoService pedidoService) {
+        this.fichaRepository = fichaRepository;
+        this.pedidoService   = pedidoService;
     }
 
-    public Ficha abrirFicha(String nomeCliente) {
-        for (Ficha f : fichas) {
-            if (f.getNomeCliente().equalsIgnoreCase(nomeCliente) && f.isAberta()) {
-                System.out.println("Já existe ficha aberta para: " + nomeCliente
-                        + " [ID: " + f.getId().toString().substring(0, 8) + "]");
-                return f;
-            }
+    public Ficha abrirFicha(int pedidoId) {
+        Pedido pedido = pedidoService.buscarPorId(pedidoId);
+        if (pedido == null) {
+            System.out.println("Pedido #" + pedidoId + " não encontrado.");
+            return null;
+        }
+        if (pedido.getStatus() == Pedido.StatusPedido.CANCELADO
+                || pedido.getStatus() == Pedido.StatusPedido.ENTREGUE) {
+            System.out.println("Não é possível abrir ficha para pedido " + pedido.getStatus() + ".");
+            return null;
         }
 
-        Ficha ficha = new Ficha(nomeCliente);
-        fichas.add(ficha);
-        System.out.printf("Ficha aberta | Cliente: %-15s | ID: %s%n",
-                nomeCliente, ficha.getId().toString().substring(0, 8));
+        Ficha ficha = new Ficha(pedidoId);
+        fichaRepository.salvar(ficha);
+        System.out.println("Ficha aberta: [" + ficha.getId().toString().substring(0, 8)
+                + "] → Pedido #" + pedidoId);
         return ficha;
     }
 
-    public boolean adicionarPedido(Ficha ficha, Pedido pedido) {
-        boolean sucesso = ficha.adicionarPedido(pedido);
-        if (sucesso) {
-            System.out.printf("Pedido [%s] adicionado à ficha de %s%n",
-                    pedido.getId().toString().substring(0, 8), ficha.getNomeCliente());
+    public boolean fecharFicha(UUID fichaId) {
+        Ficha ficha = fichaRepository.buscarPorId(fichaId);
+        if (ficha == null) {
+            System.out.println("Ficha não encontrada: " + fichaId.toString().substring(0, 8));
+            return false;
         }
-        return sucesso;
-    }
+        if (!ficha.isAberta()) {
+            System.out.println("Ficha já está fechada: [" + fichaId.toString().substring(0, 8) + "]");
+            return false;
+        }
 
-    public void fecharFicha(Ficha ficha) {
-        int pendentes = 0;
-        for (Pedido p : ficha.getPedidos()) {
-            Pedido.StatusPedido s = p.getStatus();
-            if (s == Pedido.StatusPedido.PENDENTE || s == Pedido.StatusPedido.PREPARANDO) {
-                pendentes++;
+        Pedido pedido = pedidoService.buscarPorId(ficha.getPedidoId());
+        if (pedido != null) {
+            Pedido.StatusPedido s = pedido.getStatus();
+            if (s == Pedido.StatusPedido.ABERTO || s == Pedido.StatusPedido.EM_PREPARO) {
+                System.out.printf("ATENÇÃO: Pedido #%d ainda está %s. Fechar assim mesmo?%n",
+                        pedido.getId(), s);
             }
+            System.out.printf("TOTAL DA FICHA: R$ %.2f (Pedido #%d)%n",
+                    pedido.calcularTotal(), pedido.getId());
         }
 
-        if (pendentes > 0) {
-            System.out.printf("Atenção: %d pedido(s) ainda não foram entregues na ficha de %s.%n",
-                    pendentes, ficha.getNomeCliente());
-        }
-
-        ficha.fechar();
-        System.out.printf("Ficha FECHADA | Cliente: %s | Total a pagar: R$ %.2f%n",
-                ficha.getNomeCliente(), ficha.calcularTotal());
+        boolean ok = fichaRepository.marcarUsada(fichaId);
+        if (ok) System.out.println("Ficha [" + fichaId.toString().substring(0, 8) + "] FECHADA.");
+        return ok;
     }
 
-    public Ficha buscarPorId(UUID id) {
-        for (Ficha f : fichas) {
-            if (f.getId().equals(id)) {
-                return f;
-            }
+    public boolean fecharFichaParcial(String idParcial) {
+        Ficha ficha = fichaRepository.buscarPorIdParcial(idParcial);
+        if (ficha == null) {
+            System.out.println("Ficha não encontrada: " + idParcial);
+            return false;
         }
-        System.out.println("Ficha não encontrada para o ID: " + id);
-        return null;
+        return fecharFicha(ficha.getId());
     }
+
+    public ArrayList<Ficha> listarAbertas() { return fichaRepository.listarAbertas(); }
+    public ArrayList<Ficha> listarTodas()   { return fichaRepository.listarTodas(); }
 
     public Ficha buscarPorIdParcial(String idParcial) {
-        for (Ficha f : fichas) {
-            if (f.getId().toString().startsWith(idParcial)) {
-                return f;
-            }
-        }
-        System.out.println("Ficha não encontrada para: " + idParcial);
-        return null;
-    }
-
-    public Ficha buscarAbertaPorNome(String nomeCliente) {
-        for (Ficha f : fichas) {
-            if (f.getNomeCliente().equalsIgnoreCase(nomeCliente) && f.isAberta()) {
-                return f;
-            }
-        }
-        System.out.println("Nenhuma ficha aberta para: " + nomeCliente);
-        return null;
-    }
-
-    public ArrayList<Ficha> listarAbertas() {
-        ArrayList<Ficha> abertas = new ArrayList<>();
-        for (Ficha f : fichas) {
-            if (f.isAberta()) {
-                abertas.add(f);
-            }
-        }
-        return abertas;
-    }
-
-    public ArrayList<Ficha> getTodas() {
-        return fichas;
-    }
-
-    public void exibirResumo(Ficha ficha) {
-        System.out.println("════════════════════════════════════");
-        System.out.println("         RESUMO DA FICHA           ");
-        System.out.println("════════════════════════════════════");
-        System.out.println(ficha);
-        System.out.println("────────────────────────────────────");
-        if (ficha.getPedidos().isEmpty()) {
-            System.out.println("  Nenhum pedido registrado.");
-        } else {
-            for (Pedido p : ficha.getPedidos()) {
-                System.out.println(p);
-                System.out.println("  ···································");
-            }
-        }
-        System.out.printf("TOTAL A PAGAR: R$ %.2f%n", ficha.calcularTotal());
+        return fichaRepository.buscarPorIdParcial(idParcial);
     }
 
     public void exibirFichasAbertas() {
         ArrayList<Ficha> abertas = listarAbertas();
-        if (abertas.isEmpty()) {
-            System.out.println("Nenhuma ficha aberta no momento.");
-            return;
-        }
+        if (abertas.isEmpty()) { System.out.println("Nenhuma ficha aberta."); return; }
         System.out.println("═══════ FICHAS ABERTAS ═══════");
-        for (Ficha f : abertas) {
-            System.out.println(f);
-        }
+        for (Ficha f : abertas) System.out.println(f);
     }
 }
