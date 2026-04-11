@@ -33,7 +33,7 @@ public class EstoqueService {
 
     public void removerProduto(int id) {
         if (repo.deletar(id)) {
-            System.out.println("Produto removido.");
+            System.out.println("Produto desativado com sucesso!");
         } else {
             System.out.println("Produto id " + id + " não encontrado.");
         }

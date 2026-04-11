@@ -27,7 +27,8 @@ public class ProdutoRepo {
 
     public ArrayList<Produto> buscarTodos() {
         ArrayList<Produto> lista = new ArrayList<>();
-        String sql = "SELECT * FROM produtos";
+        String sql = "SELECT * FROM produtos WHERE ativo = true";
+
         try (Connection conn = Conexao.getConexao();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -41,12 +42,14 @@ public class ProdutoRepo {
     }
 
     public Produto buscarPorId(int id) {
-        String sql = "SELECT * FROM produtos WHERE id = ?";
+        String sql = "SELECT * FROM produtos WHERE id = ? AND ativo = true";
+
         try (Connection conn = Conexao.getConexao();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
+
             if (rs.next()) return montarProduto(rs);
 
         } catch (SQLException e) {
@@ -105,7 +108,8 @@ public class ProdutoRepo {
     }
 
     public boolean deletar(int id) {
-        String sql = "DELETE FROM produtos WHERE id = ?";
+        String sql = "UPDATE produtos SET ativo = false WHERE id = ?";
+
         try (Connection conn = Conexao.getConexao();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -113,7 +117,7 @@ public class ProdutoRepo {
             return stmt.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            System.out.println("Erro ao deletar produto: " + e.getMessage());
+            System.out.println("Erro ao desativar produto: " + e.getMessage());
         }
         return false;
     }
@@ -124,7 +128,8 @@ public class ProdutoRepo {
                 rs.getString("nome"),
                 rs.getDouble("preco"),
                 rs.getInt("quantidade"),
-                TipoProduto.valueOf(rs.getString("tipo"))
+                TipoProduto.valueOf(rs.getString("tipo")),
+                rs.getBoolean("ativo")
         );
     }
 }
