@@ -2,7 +2,6 @@ package org.example.repository;
 
 import org.example.database.Conexao;
 import org.example.model.Ficha;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.UUID;
