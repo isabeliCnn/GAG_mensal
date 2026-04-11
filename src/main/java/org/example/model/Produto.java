@@ -9,7 +9,6 @@ public class Produto {
     private TipoProduto tipo;
     private boolean ativo;
 
-    // CONSTRUTOR COMPLETO
     public Produto(int id, String nome, double preco, int quantidade, TipoProduto tipo, boolean ativo) {
         this.id = id;
         this.nome = nome;
@@ -19,7 +18,6 @@ public class Produto {
         this.ativo = ativo;
     }
 
-    // CONSTRUTOR SEM ID (novo produto)
     public Produto(String nome, double preco, int quantidade, TipoProduto tipo) {
         this.nome = nome;
         this.preco = preco;
@@ -27,8 +25,6 @@ public class Produto {
         this.tipo = tipo;
         this.ativo = true;
     }
-
-    // GETTERS E SETTERS
 
     public int getId() { return id; }
     public String getNome() { return nome; }
