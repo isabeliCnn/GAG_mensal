@@ -177,8 +177,7 @@ public class PedidoRepo {
                 rs.getString("produto_nome"),
                 rs.getDouble("produto_preco"),
                 rs.getInt("produto_qtd"),
-                TipoProduto.valueOf(rs.getString("produto_tipo")),
-                rs.getBoolean("ativo")
+                TipoProduto.valueOf(rs.getString("produto_tipo"))
         );
         return new ItemPedido(produto, rs.getInt("quantidade"));
     }
