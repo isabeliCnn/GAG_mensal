@@ -1,23 +1,33 @@
 package org.example.model;
 
+import jakarta.persistence.*;
 import java.util.ArrayList;
+import java.util.List;
 
+@Entity
+@Table
 public class Pedido {
 
     public enum StatusPedido {
         ABERTO, EM_PREPARO, PRONTO, ENTREGUE, CANCELADO
     }
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private ArrayList<ItemPedido> itens;
+
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItemPedido> itens = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private StatusPedido status;
+
+    @Column(nullable = false)
     private String observacao;
 
-
     public Pedido() {
-        this.id         = 0;
-        this.itens      = new ArrayList<>();
-        this.status     = StatusPedido.ABERTO;
+        this.status = StatusPedido.ABERTO;
         this.observacao = "";
     }
 
@@ -27,28 +37,29 @@ public class Pedido {
     }
 
     public Pedido(int id, StatusPedido status) {
-        this.id         = id;
-        this.status     = status;
-        this.itens      = new ArrayList<>();
+        this.id = id;
+        this.status = status;
         this.observacao = "";
     }
 
-    public void adicionarItem(ItemPedido item) {
+    public void adicionarItem(Produto produto, int quantidade) {
+        ItemPedido item = new ItemPedido(produto, quantidade);
+        item.setPedido(this);
         itens.add(item);
     }
 
     public double calcularTotal() {
-        double total = 0;
-        for (ItemPedido item : itens) total += item.calcularSubtotal();
-        return total;
+        return itens.stream()
+                .mapToDouble(ItemPedido::calcularSubtotal)
+                .sum();
     }
 
     public void avancarStatus() {
         switch (status) {
-            case ABERTO:     status = StatusPedido.EM_PREPARO; break;
-            case EM_PREPARO: status = StatusPedido.PRONTO;     break;
-            case PRONTO:     status = StatusPedido.ENTREGUE;   break;
-            default: System.out.println("Pedido já finalizado ou cancelado.");
+            case ABERTO -> status = StatusPedido.EM_PREPARO;
+            case EM_PREPARO -> status = StatusPedido.PRONTO;
+            case PRONTO -> status = StatusPedido.ENTREGUE;
+            default -> System.out.println("Pedido já finalizado ou cancelado.");
         }
     }
 
@@ -58,23 +69,12 @@ public class Pedido {
             return;
         }
         this.status = StatusPedido.CANCELADO;
-        System.out.println("Pedido #" + id + " cancelado.");
     }
 
-    public int getId()                         { return id; }
-    public void setId(int id)                  { this.id = id; } // usado pelo repo após INSERT
-    public ArrayList<ItemPedido> getItens()    { return itens; }
-    public StatusPedido getStatus()            { return status; }
-    public String getObservacao()              { return observacao; }
-    public void setObservacao(String obs)      { this.observacao = obs; }
+    public int getId() { return id; }
+    public List<ItemPedido> getItens() { return itens; }
+    public StatusPedido getStatus() { return status; }
+    public String getObservacao() { return observacao; }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("Pedido #%d | Status: %s%n", id, status));
-        for (ItemPedido item : itens) sb.append("   • ").append(item).append("\n");
-        sb.append(String.format("TOTAL: R$ %.2f", calcularTotal()));
-        if (!observacao.isEmpty()) sb.append(" | Obs: ").append(observacao);
-        return sb.toString();
-    }
+    public void setObservacao(String observacao) { this.observacao = observacao; }
 }

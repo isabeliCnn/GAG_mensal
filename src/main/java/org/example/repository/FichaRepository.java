@@ -1,104 +1,62 @@
 package org.example.repository;
 
-import org.example.database.Conexao;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Persistence;
 import org.example.model.Ficha;
-import java.sql.*;
-import java.util.ArrayList;
+
+import java.util.List;
 import java.util.UUID;
 
 public class FichaRepository {
 
-    public boolean salvar(Ficha ficha) {
-        String sql = "INSERT INTO fichas (id, pedido_id, usada) VALUES (?, ?, ?)";
-        try (Connection conn = Conexao.getConexao();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+    private EntityManager em;
 
-            ps.setString(1, ficha.getId().toString());
-            ps.setInt(2, ficha.getPedidoId());
-            ps.setBoolean(3, ficha.isUsada());
-            ps.executeUpdate();
-            System.out.println("Ficha salva: [" + ficha.getId().toString().substring(0, 8) + "]"
-                    + " → Pedido #" + ficha.getPedidoId());
+    public FichaRepository() {
+        em = Persistence.createEntityManagerFactory("meuPU").createEntityManager();
+    }
+
+    public boolean salvar(Ficha ficha) {
+        try {
+            em.getTransaction().begin();
+            em.persist(ficha);
+            em.getTransaction().commit();
+
+            System.out.println("Ficha salva: " + ficha.getId());
             return true;
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             System.out.println("Erro ao salvar ficha: " + e.getMessage());
             return false;
         }
     }
 
     public Ficha buscarPorId(UUID id) {
-        String sql = "SELECT * FROM fichas WHERE id = ?";
-        try (Connection conn = Conexao.getConexao();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, id.toString());
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) return montarFicha(rs);
-
-        } catch (SQLException e) {
-            System.out.println("Erro ao buscar ficha: " + e.getMessage());
-        }
-        return null;
+        return em.find(Ficha.class, id);
     }
 
-
-    public ArrayList<Ficha> listarAbertas() {
-        return listarPorUsada(false);
+    public List<Ficha> listarTodas() {
+        return em.createQuery("FROM Ficha", Ficha.class)
+                .getResultList();
     }
 
-    public ArrayList<Ficha> listarTodas() {
-        String sql = "SELECT * FROM fichas ORDER BY id";
-        ArrayList<Ficha> lista = new ArrayList<>();
-        try (Connection conn = Conexao.getConexao();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) lista.add(montarFicha(rs));
-
-        } catch (SQLException e) {
-            System.out.println("Erro ao listar fichas: " + e.getMessage());
-        }
-        return lista;
+    public List<Ficha> listarAbertas() {
+        return em.createQuery(
+                "SELECT f FROM Ficha f WHERE f.usada = false",
+                Ficha.class
+        ).getResultList();
     }
 
     public boolean marcarUsada(UUID id) {
-        String sql = "UPDATE fichas SET usada = TRUE WHERE id = ?";
-        try (Connection conn = Conexao.getConexao();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        Ficha ficha = buscarPorId(id);
 
-            ps.setString(1, id.toString());
-            boolean ok = ps.executeUpdate() > 0;
-            if (ok) System.out.println("Ficha fechada: [" + id.toString().substring(0, 8) + "]");
-            return ok;
+        if (ficha == null) return false;
 
-        } catch (SQLException e) {
-            System.out.println("Erro ao fechar ficha: " + e.getMessage());
-            return false;
-        }
-    }
+        em.getTransaction().begin();
+        ficha.fechar();
+        em.merge(ficha);
+        em.getTransaction().commit();
 
-    private ArrayList<Ficha> listarPorUsada(boolean usada) {
-        String sql = "SELECT * FROM fichas WHERE usada = ?";
-        ArrayList<Ficha> lista = new ArrayList<>();
-        try (Connection conn = Conexao.getConexao();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setBoolean(1, usada);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) lista.add(montarFicha(rs));
-
-        } catch (SQLException e) {
-            System.out.println("Erro ao listar fichas: " + e.getMessage());
-        }
-        return lista;
-    }
-
-    private Ficha montarFicha(ResultSet rs) throws SQLException {
-        return new Ficha(
-                UUID.fromString(rs.getString("id")),
-                rs.getInt("pedido_id"),
-                rs.getBoolean("usada")
-        );
+        System.out.println("Ficha fechada: " + id);
+        return true;
     }
 }

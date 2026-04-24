@@ -4,77 +4,107 @@ import org.example.model.Ficha;
 import org.example.model.Pedido;
 import org.example.repository.FichaRepository;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class FichaService {
 
     private final FichaRepository fichaRepository;
-    private final PedidoService   pedidoService;
+    private final PedidoService pedidoService;
 
     public FichaService(FichaRepository fichaRepository, PedidoService pedidoService) {
         this.fichaRepository = fichaRepository;
-        this.pedidoService   = pedidoService;
+        this.pedidoService = pedidoService;
     }
 
     public Ficha abrirFicha(int pedidoId) {
+
         Pedido pedido = pedidoService.buscarPorId(pedidoId);
+
         if (pedido == null) {
             System.out.println("Pedido #" + pedidoId + " não encontrado.");
             return null;
         }
+
         if (pedido.getStatus() == Pedido.StatusPedido.CANCELADO
                 || pedido.getStatus() == Pedido.StatusPedido.ENTREGUE) {
-            System.out.println("Não é possível abrir ficha para pedido " + pedido.getStatus() + ".");
+
+            System.out.println("Não é possível abrir ficha para pedido " + pedido.getStatus());
             return null;
         }
 
-        Ficha ficha = new Ficha(pedidoId);
+        // ✅ AGORA CORRETO (usa objeto, não ID)
+        Ficha ficha = new Ficha(pedido);
+
         fichaRepository.salvar(ficha);
-        System.out.println("Ficha aberta: [" + ficha.getId().toString().substring(0, 8)
-                + "] → Pedido #" + pedidoId);
+
+        System.out.println("Ficha aberta: [" +
+                ficha.getId().toString().substring(0, 8) +
+                "] → Pedido #" + pedido.getId());
+
         return ficha;
     }
 
     public boolean fecharFicha(UUID fichaId) {
+
         Ficha ficha = fichaRepository.buscarPorId(fichaId);
+
         if (ficha == null) {
-            System.out.println("Ficha não encontrada: " + fichaId.toString().substring(0, 8));
-            return false;
-        }
-        if (!ficha.isAberta()) {
-            System.out.println("Ficha já está fechada: [" + fichaId.toString().substring(0, 8) + "]");
+            System.out.println("Ficha não encontrada.");
             return false;
         }
 
-        Pedido pedido = pedidoService.buscarPorId(ficha.getPedidoId());
+        if (!ficha.isAberta()) {
+            System.out.println("Ficha já está fechada.");
+            return false;
+        }
+
+        // ✅ AGORA CORRETO
+        Pedido pedido = ficha.getPedido();
+
         if (pedido != null) {
+
             Pedido.StatusPedido s = pedido.getStatus();
+
             if (s == Pedido.StatusPedido.ABERTO || s == Pedido.StatusPedido.EM_PREPARO) {
-                System.out.printf("ATENÇÃO: Pedido #%d ainda está %s. Fechar assim mesmo?%n",
+                System.out.printf("ATENÇÃO: Pedido #%d ainda está %s%n",
                         pedido.getId(), s);
             }
+
             System.out.printf("TOTAL DA FICHA: R$ %.2f (Pedido #%d)%n",
                     pedido.calcularTotal(), pedido.getId());
         }
 
-        boolean ok = fichaRepository.
+        boolean ok = fichaRepository.marcarUsada(fichaId);
 
-                marcarUsada(fichaId);
-        if (ok) System.out.println("Ficha [" + fichaId.toString().substring(0, 8) + "] FECHADA.");
+        if (ok) {
+            System.out.println("Ficha fechada!");
+        }
+
         return ok;
     }
 
+    public List<Ficha> listarAbertas() {
+        return fichaRepository.listarAbertas();
+    }
 
-
-    public ArrayList<Ficha> listarAbertas() { return fichaRepository.listarAbertas(); }
-    public ArrayList<Ficha> listarTodas()   { return fichaRepository.listarTodas(); }
-
+    public List<Ficha> listarTodas() {
+        return fichaRepository.listarTodas();
+    }
 
     public void exibirFichasAbertas() {
-        ArrayList<Ficha> abertas = listarAbertas();
-        if (abertas.isEmpty()) { System.out.println("Nenhuma ficha aberta."); return; }
+
+        List<Ficha> abertas = listarAbertas();
+
+        if (abertas.isEmpty()) {
+            System.out.println("Nenhuma ficha aberta.");
+            return;
+        }
+
         System.out.println("═══════ FICHAS ABERTAS ═══════");
-        for (Ficha f : abertas) System.out.println(f);
+
+        for (Ficha f : abertas) {
+            System.out.println(f);
+        }
     }
 }
