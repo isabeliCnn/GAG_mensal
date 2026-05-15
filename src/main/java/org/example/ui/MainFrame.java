@@ -31,6 +31,7 @@ public class MainFrame extends javax.swing.JFrame {
         btnUsuarios = new javax.swing.JButton();
         btnSair = new javax.swing.JButton();
         btnEstoque = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setAutoRequestFocus(false);
@@ -38,11 +39,15 @@ public class MainFrame extends javax.swing.JFrame {
         btnUsuarios.setText("Cadastrar Usuário!");
         btnUsuarios.addActionListener(this::btnUsuariosActionPerformed);
 
+        btnSair.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
         btnSair.setText("Sair do Sistema.");
         btnSair.addActionListener(this::btnSairActionPerformed);
 
         btnEstoque.setText("Gerenciar Estoque!");
         btnEstoque.addActionListener(this::btnEstoqueActionPerformed);
+
+        jLabel1.setFont(new java.awt.Font("Segoe UI Black", 1, 24)); // NOI18N
+        jLabel1.setText("Funcionalidades!");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -54,19 +59,25 @@ public class MainFrame extends javax.swing.JFrame {
                 .addGap(28, 28, 28))
             .addGroup(layout.createSequentialGroup()
                 .addGap(31, 31, 31)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btnEstoque)
-                    .addComponent(btnUsuarios))
-                .addContainerGap(241, Short.MAX_VALUE))
+                .addComponent(btnUsuarios)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 66, Short.MAX_VALUE)
+                .addComponent(btnEstoque)
+                .addGap(48, 48, 48))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(86, 86, 86)
+                .addComponent(jLabel1)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(84, 84, 84)
-                .addComponent(btnUsuarios)
-                .addGap(43, 43, 43)
-                .addComponent(btnEstoque)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 62, Short.MAX_VALUE)
+                .addGap(31, 31, 31)
+                .addComponent(jLabel1)
+                .addGap(62, 62, 62)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnUsuarios)
+                    .addComponent(btnEstoque))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 89, Short.MAX_VALUE)
                 .addComponent(btnSair)
                 .addGap(42, 42, 42))
         );
@@ -117,5 +128,6 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnEstoque;
     private javax.swing.JButton btnSair;
     private javax.swing.JButton btnUsuarios;
+    private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
 }
