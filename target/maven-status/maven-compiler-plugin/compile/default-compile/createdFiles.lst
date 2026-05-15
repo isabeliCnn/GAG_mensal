@@ -1,5 +1,8 @@
+org\example\ui\LoginFrame.class
+org\example\ui\FichaFrame.class
 org\example\database\FlywayConfig.class
 org\example\service\EstoqueService.class
+org\example\ui\MainFrame.class
 org\example\model\TipoProduto.class
 org\example\model\Usuario.class
 org\example\repository\UsuarioRepository.class
@@ -14,6 +17,7 @@ org\example\service\AuthService.class
 org\example\ui\Menu.class
 org\example\repository\FichaRepository.class
 org\example\repository\ProdutoRepo.class
+org\example\ui\EstoqueFrame.class
 org\example\service\FichaService.class
 org\example\model\Produto.class
 org\example\service\RelatorioService.class
