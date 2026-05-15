@@ -121,10 +121,35 @@ public class CadastroUsuarioFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtLoginActionPerformed
 
-    private void btnCadastrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCadastrarActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnCadastrarActionPerformed
+    private void btnCadastrarActionPerformed(java.awt.event.ActionEvent evt) {
+        String login = txtLogin.getText();
+        String senha = new String(txtSenha.getPassword());
+        String perfil = cbPerfil.getSelectedItem().toString();
 
+        if (login.isEmpty() || senha.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Preencha todos os campos!");
+            return;
+        }
+
+        try {
+            org.example.repository.UsuarioRepository repo = new org.example.repository.UsuarioRepository();
+
+            if (repo.buscarPorLogin(login) != null) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Login já existe!", "Erro", javax.swing.JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            org.example.model.Usuario usuario = new org.example.model.Usuario(login, senha, perfil);
+            repo.salvar(usuario);
+
+            javax.swing.JOptionPane.showMessageDialog(this, "Usuário '" + login + "' cadastrado com sucesso!");
+            txtLogin.setText("");
+            txtSenha.setText("");
+
+        } catch (Exception erro) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Erro ao cadastrar: " + erro.getMessage(), "Erro", javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
+    }
     /**
      * @param args the command line arguments
      */

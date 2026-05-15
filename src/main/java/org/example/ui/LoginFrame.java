@@ -119,9 +119,9 @@ public class LoginFrame extends javax.swing.JFrame {
                 javax.swing.JOptionPane.showMessageDialog(this, "Acesso concedido! Bem-vindo, " + loginDigitado + ".", "Sucesso", javax.swing.JOptionPane.INFORMATION_MESSAGE);
                 
                 // --- Aqui nós vamos abrir o Menu Principal depois ---
-                // MenuFrame menu = new MenuFrame();
-                // menu.setVisible(true);
-                // this.dispose(); 
+                MainFrame menu = new MainFrame();
+                menu.setVisible(true);
+                this.dispose();
                 
             } else {
                 // deu ruim na senha ou o usuário não existe

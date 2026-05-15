@@ -166,9 +166,41 @@ public class EstoqueFrame extends javax.swing.JFrame {
         }// TODO add your handling code here:
     }//GEN-LAST:event_btnSalvarActionPerformed
 
-    private void btnVoltarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVoltarActionPerformed
-this.dispose(); // fecha a tela do estoque e deixa no menu        // TODO add your handling code here:
-    }//GEN-LAST:event_btnVoltarActionPerformed
+    private void btnSalvarActionPerformed(java.awt.event.ActionEvent evt) {
+        String nome = txtNome.getText();
+        String quantidadeStr = txtQuantidade.getText();
+        String precoStr = txtPreco.getText();
+
+        if (nome.isEmpty() || quantidadeStr.isEmpty() || precoStr.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Preencha todos os campos!");
+            return;
+        }
+
+        try {
+            int quantidade = Integer.parseInt(quantidadeStr);
+            double preco = Double.parseDouble(precoStr.replace(",", "."));
+
+            if (quantidade <= 5) {
+                javax.swing.JOptionPane.showMessageDialog(this,
+                        "Atenção: estoque crítico (" + quantidade + " unidades)!",
+                        "Alerta de Estoque", javax.swing.JOptionPane.WARNING_MESSAGE);
+            }
+
+            org.example.model.TipoProduto tipo = org.example.model.TipoProduto.BEBIDA;
+
+            org.example.model.Produto produto = new org.example.model.Produto(nome, preco, quantidade, tipo);
+            org.example.service.EstoqueService service = new org.example.service.EstoqueService(new org.example.repository.ProdutoRepo());
+            service.adicionarProduto(produto);
+
+            javax.swing.JOptionPane.showMessageDialog(this, "Produto '" + nome + "' salvo no banco!");
+            txtNome.setText("");
+            txtQuantidade.setText("");
+            txtPreco.setText("");
+
+        } catch (NumberFormatException erro) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Digite apenas números válidos!", "Atenção", javax.swing.JOptionPane.WARNING_MESSAGE);
+        }
+    }
 
     /**
      * @param args the command line arguments
