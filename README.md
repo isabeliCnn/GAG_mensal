@@ -20,15 +20,9 @@ Sistema desktop desenvolvido em Java para gerenciamento de bar e restaurante.
 * Flyway
 * Maven
 
-## Como Executar
-
-1. Configurar o banco de dados PostgreSQL.
-2. Ajustar as credenciais no arquivo `persistence.xml`.
-3. Executar o projeto pela IDE ou com Maven.
-
 ## Autores
 
-Projeto desenvolvido para fins acadêmicos por Jeongin Yang e equipe.
+Projeto desenvolvido para fins acadêmicos por Isabeli Claumann e Kethelyn Januskevicius
 
 ## Licença
 
