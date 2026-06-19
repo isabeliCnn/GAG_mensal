@@ -16,49 +16,42 @@ public class Usuario {
     @Column(nullable = false, length = 100)
     private String senha;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String perfil;
+    private Perfil perfil;
 
-    // Construtor padrão exigido pelo JPA
-    public Usuario() {}
+    protected Usuario() {
+        // exigido pelo JPA
+    }
 
-    // Construtor auxiliar
-    public Usuario(String login, String senha, String perfil) {
-        this.login = login;
+    public Usuario(String login, String senha, Perfil perfil) {
+        if (login == null || login.isBlank()) {
+            throw new IllegalArgumentException("O login não pode ser vazio.");
+        }
+        if (senha == null || senha.isBlank()) {
+            throw new IllegalArgumentException("A senha não pode ser vazia.");
+        }
+        if (perfil == null) {
+            throw new IllegalArgumentException("O perfil é obrigatório.");
+        }
+        this.login = login.trim();
         this.senha = senha;
         this.perfil = perfil;
     }
 
-    // Getters e Setters
-    public int getId() {
-        return id;
+    public boolean senhaEstaCorreta(String senhaDigitada) {
+        return this.senha.equals(senhaDigitada);
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public boolean isAdmin() {
+        return perfil == Perfil.ADMIN;
     }
 
-    public String getLogin() {
-        return login;
-    }
+    public int getId() { return id; }
+    public String getLogin() { return login; }
+    public Perfil getPerfil() { return perfil; }
 
-    public void setLogin(String login) {
-        this.login = login;
-    }
-
-    public String getSenha() {
-        return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
-    }
-
-    public String getPerfil() {
-        return perfil;
-    }
-
-    public void setPerfil(String perfil) {
-        this.perfil = perfil;
-    }
+    // getSenha não é exposto publicamente: comparação deve ocorrer
+    // via senhaEstaCorreta(), nunca lendo a senha diretamente de fora.
+    String getSenha() { return senha; }
 }
