@@ -58,6 +58,27 @@ public class EstoqueService {
                 : ResultadoOperacao.erro("Não foi possível remover o produto.");
     }
 
+    public ResultadoOperacao atualizarNome(int id, String novoNome) {
+        Produto produto = produtoRepo.buscarPorId(id);
+        if (produto == null) {
+            return ResultadoOperacao.erro("Produto não encontrado.");
+        }
+        if (novoNome == null || novoNome.isBlank()) {
+            return ResultadoOperacao.erro("O nome do produto é obrigatório.");
+        }
+        Produto existente = produtoRepo.buscarPorNome(novoNome);
+        if (existente != null && existente.getId() != id) {
+            return ResultadoOperacao.erro("Já existe outro produto com este nome.");
+        }
+        try {
+            produto.atualizarNome(novoNome);
+            produtoRepo.atualizar(produto);
+            return ResultadoOperacao.sucesso("Nome atualizado para '" + novoNome + "'.");
+        } catch (IllegalArgumentException e) {
+            return ResultadoOperacao.erro(e.getMessage());
+        }
+    }
+
     public ResultadoOperacao atualizarPreco(int id, double novoPreco) {
         Produto produto = produtoRepo.buscarPorId(id);
         if (produto == null) {

@@ -104,6 +104,11 @@ public class Produto {
         this.preco = novoPreco;
     }
 
+    public void atualizarNome(String novoNome) {
+        validarNome(novoNome);
+        this.nome = novoNome.trim();
+    }
+
     public void desativar() {
         this.ativo = false;
     }

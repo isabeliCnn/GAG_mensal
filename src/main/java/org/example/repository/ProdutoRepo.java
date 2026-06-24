@@ -27,7 +27,7 @@ public class ProdutoRepo {
         EntityManager em = JpaUtil.getEntityManager();
         try {
             return em.createQuery(
-                    "SELECT p FROM Produto p WHERE p.ativo = true", Produto.class
+                    "SELECT p FROM Produto p WHERE p.ativo = true ORDER BY p.id ASC", Produto.class
             ).getResultList();
         } finally {
             em.close();

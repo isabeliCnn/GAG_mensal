@@ -4,6 +4,7 @@ import org.example.controller.PedidoController;
 import org.example.model.Produto;
 import org.example.util.AppContext;
 import org.example.util.ResultadoOperacao;
+import org.example.util.ErroUtil;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -13,6 +14,7 @@ import java.util.List;
 public class PedidoFrame extends JFrame {
 
     private final PedidoController pedidoController;
+    private final int numeroMesa;
 
     private DefaultTableModel modeloCardapio;
     private DefaultTableModel modeloItensPedido;
@@ -20,14 +22,41 @@ public class PedidoFrame extends JFrame {
     private JLabel rotuloTotal;
     private JSpinner spinnerQuantidade;
 
-    public PedidoFrame() {
+    public PedidoFrame(int numeroMesa) {
+        this.numeroMesa = numeroMesa;
         this.pedidoController = AppContext.novoPedidoController();
+        this.pedidoController.iniciarNovoPedido(numeroMesa);
         montarTela();
         carregarCardapio();
     }
 
+    /**
+     * Pergunta o número da mesa antes de abrir a tela de pedido. Retorna
+     * null se o usuário cancelar ou não informar um número válido — quem
+     * chamar este método deve checar isso antes de abrir o PedidoFrame.
+     */
+    public static Integer perguntarNumeroMesa(Component pai) {
+        while (true) {
+            String texto = JOptionPane.showInputDialog(pai, "Número da mesa:", "Novo Pedido", JOptionPane.QUESTION_MESSAGE);
+            if (texto == null) {
+                return null; // cancelou
+            }
+            texto = texto.trim();
+            try {
+                int mesa = Integer.parseInt(texto);
+                if (mesa <= 0) {
+                    JOptionPane.showMessageDialog(pai, "O número da mesa deve ser maior que zero.", "Mesa inválida", JOptionPane.WARNING_MESSAGE);
+                    continue;
+                }
+                return mesa;
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(pai, "Digite um número de mesa válido.", "Mesa inválida", JOptionPane.WARNING_MESSAGE);
+            }
+        }
+    }
+
     private void montarTela() {
-        setTitle("Forja Bar — Novo Pedido");
+        setTitle("Forja Bar — Novo Pedido (Mesa " + numeroMesa + ")");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setMinimumSize(new Dimension(860, 540));
         setLocationRelativeTo(null);
@@ -36,7 +65,7 @@ public class PedidoFrame extends JFrame {
         painelPrincipal.setBackground(ComponentesUi.COR_FUNDO);
         setContentPane(painelPrincipal);
 
-        JPanel cabecalho = ComponentesUi.criarCabecalho("Novo Pedido", new Color(180, 100, 60));
+        JPanel cabecalho = ComponentesUi.criarCabecalho("Novo Pedido — Mesa " + numeroMesa, ComponentesUi.ROSA_NEON);
 
         JPanel corpo = new JPanel(new GridLayout(1, 2, 12, 0));
         corpo.setBackground(ComponentesUi.COR_PAINEL);
@@ -45,18 +74,14 @@ public class PedidoFrame extends JFrame {
         corpo.add(montarColunaCardapio());
         corpo.add(montarColunaItensPedido());
 
-        JPanel rodape = new JPanel(new GridLayout(1, 2, 10, 0));
-        rodape.setBackground(ComponentesUi.COR_FUNDO);
-        rodape.setBorder(BorderFactory.createEmptyBorder(10, 20, 16, 20));
-
         JButton botaoVoltar = ComponentesUi.criarBotaoSecundario("Voltar ao Menu");
         botaoVoltar.addActionListener(e -> dispose());
 
-        JButton botaoConfirmar = ComponentesUi.criarBotaoPrimario("Confirmar Pedido", new Color(60, 160, 100), Color.WHITE);
-        botaoConfirmar.addActionListener(e -> confirmarPedido());
+        JButton botaoConfirmar = ComponentesUi.criarBotaoPrimario("Confirmar Pedido", ComponentesUi.VERDE_NEON, Color.WHITE);
+        ComponentesUi.aoClicar(botaoConfirmar, this::confirmarPedido);
 
-        rodape.add(botaoVoltar);
-        rodape.add(botaoConfirmar);
+        JPanel rodape = ComponentesUi.montarBarraAcoes(botaoVoltar, botaoConfirmar);
+        rodape.setBorder(BorderFactory.createEmptyBorder(10, 20, 16, 20));
 
         painelPrincipal.add(cabecalho, BorderLayout.NORTH);
         painelPrincipal.add(corpo, BorderLayout.CENTER);
@@ -73,9 +98,9 @@ public class PedidoFrame extends JFrame {
         modeloCardapio = new DefaultTableModel(colunas, 0) {
             public boolean isCellEditable(int linha, int coluna) { return false; }
         };
-        tabelaCardapio = ComponentesUi.criarTabelaEstilizada(modeloCardapio, new Color(180, 100, 60));
+        tabelaCardapio = ComponentesUi.criarTabelaEstilizada(modeloCardapio, ComponentesUi.ROSA_NEON);
         JScrollPane scroll = new JScrollPane(tabelaCardapio);
-        scroll.setBorder(BorderFactory.createLineBorder(new Color(80, 80, 110)));
+        scroll.setBorder(BorderFactory.createLineBorder(new Color(45, 25, 38)));
         scroll.getViewport().setBackground(ComponentesUi.COR_PAINEL);
 
         JPanel painelQuantidade = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
@@ -84,8 +109,8 @@ public class PedidoFrame extends JFrame {
         spinnerQuantidade = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1));
         spinnerQuantidade.setPreferredSize(new Dimension(70, 30));
 
-        JButton botaoAdicionar = ComponentesUi.criarBotaoPrimario("Adicionar ao Pedido", new Color(180, 100, 60), Color.WHITE);
-        botaoAdicionar.addActionListener(e -> adicionarItemAoPedido());
+        JButton botaoAdicionar = ComponentesUi.criarBotaoPrimario("Adicionar", ComponentesUi.ROSA_NEON, Color.WHITE);
+        ComponentesUi.aoClicar(botaoAdicionar, this::adicionarItemAoPedido);
 
         painelQuantidade.add(rotuloQuantidade);
         painelQuantidade.add(spinnerQuantidade);
@@ -106,9 +131,9 @@ public class PedidoFrame extends JFrame {
         modeloItensPedido = new DefaultTableModel(colunas, 0) {
             public boolean isCellEditable(int linha, int coluna) { return false; }
         };
-        JTable tabelaItens = ComponentesUi.criarTabelaEstilizada(modeloItensPedido, new Color(180, 100, 60));
+        JTable tabelaItens = ComponentesUi.criarTabelaEstilizada(modeloItensPedido, ComponentesUi.ROSA_NEON);
         JScrollPane scroll = new JScrollPane(tabelaItens);
-        scroll.setBorder(BorderFactory.createLineBorder(new Color(80, 80, 110)));
+        scroll.setBorder(BorderFactory.createLineBorder(new Color(45, 25, 38)));
         scroll.getViewport().setBackground(ComponentesUi.COR_PAINEL);
 
         rotuloTotal = new JLabel("Total: R$ 0,00");
@@ -123,7 +148,13 @@ public class PedidoFrame extends JFrame {
 
     private void carregarCardapio() {
         modeloCardapio.setRowCount(0);
-        List<Produto> cardapio = pedidoController.listarCardapioDisponivel();
+        List<Produto> cardapio;
+        try {
+            cardapio = pedidoController.listarCardapioDisponivel();
+        } catch (RuntimeException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar cardápio: " + ErroUtil.causaRaiz(e), "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         for (Produto produto : cardapio) {
             modeloCardapio.addRow(new Object[]{
                     produto.getId(), produto.getNome(),
@@ -143,20 +174,24 @@ public class PedidoFrame extends JFrame {
         String nomeProduto = (String) modeloCardapio.getValueAt(linhaSelecionada, 1);
         int quantidade = (int) spinnerQuantidade.getValue();
 
-        ResultadoOperacao resultado = pedidoController.adicionarItem(idProduto, quantidade);
+        try {
+            ResultadoOperacao resultado = pedidoController.adicionarItem(idProduto, quantidade);
 
-        if (!resultado.isSucesso()) {
-            JOptionPane.showMessageDialog(this, resultado.getMensagem(), "Não foi possível adicionar", JOptionPane.WARNING_MESSAGE);
-            return;
+            if (!resultado.isSucesso()) {
+                JOptionPane.showMessageDialog(this, resultado.getMensagem(), "Não foi possível adicionar", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            Produto produto = pedidoController.getPedidoEmAndamento().getItens().get(
+                    pedidoController.getPedidoEmAndamento().getItens().size() - 1).getProduto();
+            double subtotal = produto.getPreco() * quantidade;
+            modeloItensPedido.addRow(new Object[]{nomeProduto, quantidade, String.format("R$ %.2f", subtotal)});
+
+            atualizarRotuloTotal();
+            carregarCardapio();
+        } catch (RuntimeException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao adicionar item: " + ErroUtil.causaRaiz(e), "Erro", JOptionPane.ERROR_MESSAGE);
         }
-
-        Produto produto = pedidoController.getPedidoEmAndamento().getItens().get(
-                pedidoController.getPedidoEmAndamento().getItens().size() - 1).getProduto();
-        double subtotal = produto.getPreco() * quantidade;
-        modeloItensPedido.addRow(new Object[]{nomeProduto, quantidade, String.format("R$ %.2f", subtotal)});
-
-        atualizarRotuloTotal();
-        carregarCardapio();
     }
 
     private void atualizarRotuloTotal() {
@@ -169,14 +204,30 @@ public class PedidoFrame extends JFrame {
     }
 
     private void confirmarPedido() {
-        ResultadoOperacao resultado = pedidoController.confirmarPedidoEAbrirFicha();
-
-        if (!resultado.isSucesso()) {
-            JOptionPane.showMessageDialog(this, resultado.getMensagem(), "Não foi possível confirmar", JOptionPane.WARNING_MESSAGE);
+        if (pedidoController.getPedidoEmAndamento().getItens().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Adicione ao menos um item antes de confirmar.", "Pedido vazio", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        JOptionPane.showMessageDialog(this, resultado.getMensagem());
-        dispose();
+        int confirmacao = JOptionPane.showConfirmDialog(this,
+                "Confirmar o pedido da Mesa " + numeroMesa + "? Esta ação não pode ser desfeita.",
+                "Confirmar Pedido", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (confirmacao != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+            ResultadoOperacao resultado = pedidoController.confirmarPedidoEAbrirFicha();
+
+            if (!resultado.isSucesso()) {
+                JOptionPane.showMessageDialog(this, resultado.getMensagem(), "Não foi possível confirmar", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            JOptionPane.showMessageDialog(this, resultado.getMensagem());
+            dispose();
+        } catch (RuntimeException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao confirmar pedido: " + ErroUtil.causaRaiz(e), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

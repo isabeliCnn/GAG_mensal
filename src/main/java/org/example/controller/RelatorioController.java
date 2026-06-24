@@ -14,4 +14,8 @@ public class RelatorioController {
     public RelatorioDoDia gerarRelatorioDoDia() {
         return relatorioService.gerarRelatorioDoDia();
     }
+
+    public RelatorioDoDia gerarRelatorioDoMes() {
+        return relatorioService.gerarRelatorioDoMes();
+    }
 }

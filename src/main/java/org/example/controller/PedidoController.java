@@ -21,7 +21,15 @@ public class PedidoController {
         this.pedidoService = pedidoService;
         this.estoqueService = estoqueService;
         this.fichaService = fichaService;
-        this.pedidoEmAndamento = pedidoService.criarPedido();
+    }
+
+    /** Inicia um novo pedido associado a uma mesa. Deve ser chamado antes de qualquer outra operação. */
+    public void iniciarNovoPedido(int numeroMesa) {
+        this.pedidoEmAndamento = pedidoService.criarPedido(numeroMesa);
+    }
+
+    public int getNumeroMesaAtual() {
+        return pedidoEmAndamento.getNumeroMesa();
     }
 
     public List<Produto> listarCardapioDisponivel() {
@@ -68,14 +76,9 @@ public class PedidoController {
 
         try {
             fichaService.abrirFicha(pedidoEmAndamento.getId());
-            this.pedidoEmAndamento = pedidoService.criarPedido(); // libera um novo pedido para o próximo atendimento
-            return ResultadoOperacao.sucesso(resultadoConfirmacao.getMensagem() + " Ficha aberta.");
+            return ResultadoOperacao.sucesso(resultadoConfirmacao.getMensagem() + " Ficha aberta para a Mesa " + pedidoEmAndamento.getNumeroMesa() + ".");
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResultadoOperacao.erro("Pedido confirmado, mas houve um erro ao abrir a ficha: " + e.getMessage());
         }
-    }
-
-    public void reiniciarPedido() {
-        this.pedidoEmAndamento = pedidoService.criarPedido();
     }
 }

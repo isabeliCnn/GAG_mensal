@@ -45,6 +45,10 @@ public class EstoqueController {
         return estoqueService.removerProduto(id);
     }
 
+    public ResultadoOperacao atualizarNome(int id, String novoNome) {
+        return estoqueService.atualizarNome(id, novoNome);
+    }
+
     public ResultadoOperacao atualizarEstoque(int id, int novaQuantidade) {
         return estoqueService.atualizarEstoque(id, novaQuantidade);
     }
